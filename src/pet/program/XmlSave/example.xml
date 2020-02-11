@@ -1,0 +1,6 @@
+<Pets>
+    <pet>
+        <Name>名称</Name>
+        <NickName>宠物昵称</NickName>
+    </pet>
+</Pets>
