@@ -15,20 +15,23 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class Example {
-    public static void main(String[] args) throws TransformerException, FileNotFoundException, ParserConfigurationException {
+    public static void main(String[] args)  {
+
         XmlSave xmlSave=new XmlSave("Pets");
         xmlSave.createXml("Pets");
-        try{
-            xmlSave.createNode("Name","王看山","0");
-            xmlSave.createNode("Name","王看","1");
+        //创建xml
 
-            System.out.println(xmlSave.readNodeValue(0));
-            System.out.println(xmlSave.readNodeValue(1));
+        xmlSave.createNode("Name","王看山","0");
+        xmlSave.createNode("Name","王看","1");
+        //创建节点
+        xmlSave.insertNode("NickName","山山",1);
+        //插入节点
 
+        System.out.println(xmlSave.readNodeValue(0,"Name"));
+        //获取节点内容
+        System.out.println(xmlSave.readNodeValue(1,"Name"));
+        System.out.println(xmlSave.readNodeValue(1,"NickName"));
 
-        }catch (IOException| SAXException e){
-            e.printStackTrace();
-        }
 
 
     }

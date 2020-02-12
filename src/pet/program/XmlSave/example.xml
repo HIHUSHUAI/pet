@@ -1,5 +1,5 @@
 <Pets>
-    <pet>
+    <pet id="0">
         <Name>名称</Name>
         <NickName>宠物昵称</NickName>
     </pet>

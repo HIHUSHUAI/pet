@@ -9,7 +9,6 @@ package pet.program.XmlSave;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
@@ -17,6 +16,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -33,37 +33,37 @@ public class XmlSave {
     private Transformer tr;
 
 
-    public XmlSave(String filename) throws TransformerException, ParserConfigurationException {
+    public XmlSave(String filename){
         this.filename = filename;
 
         dbf = DocumentBuilderFactory.newInstance();
-        db = dbf.newDocumentBuilder();
+        try{
+            db = dbf.newDocumentBuilder();
+            tr = TransformerFactory.newInstance().newTransformer();
+        }catch (ParserConfigurationException| TransformerConfigurationException e){
+            e.printStackTrace();
+        }
         document=db.newDocument();
-        tr = TransformerFactory.newInstance().newTransformer();
+
     }
 
-    public void createXml(String filename) throws  TransformerException, FileNotFoundException {
+    public boolean createXml(String filename) {
         Element Pets=document.createElement("Pets");
-//        Element Pet=document.createElement("Pet");
-//
-//        Element Name=document.createElement("Name");
-//        Element NickName=document.createElement("Nickname");
-//        Pet.appendChild(Name);
-//        Pet.appendChild(NickName);
-//        Pet.setAttribute("id","0");
-//        Pets.appendChild(Pet);
-
-
         document.appendChild(Pets);
+        try{
+            tr.transform(new DOMSource(document),
+                    new StreamResult(new FileOutputStream(filename+".xml")));
 
-        tr.transform(new DOMSource(document),
-                new StreamResult(new FileOutputStream(filename+".xml")));
+            return true;
+        }catch (FileNotFoundException | TransformerException e){
+            e.printStackTrace();
 
-
+            return false;
+        }
     }
 
-    public void createNode(String name, String value,String id) throws IOException, SAXException, TransformerException {
-        Document doc=db.parse(filename+".xml");
+    public void createNode(String name, String value,String id){
+        Document doc=getParsedXML();
         Element root=doc.getDocumentElement();
         Element Pet=doc.createElement("Pet");
 
@@ -73,21 +73,52 @@ public class XmlSave {
         Pet.setAttribute("id",id);
         root.appendChild(Pet);
 
-//        在这里创建新的节点
-        tr.transform(new DOMSource(doc),
-                new StreamResult(new FileOutputStream(filename+".xml")));
+//        在这里可额外创建新的节点,作为模板
+        generateXML(doc);
 
     }
 
 
+    public void insertNode(String name, String value,int id) {
+        Document doc= getParsedXML();
+        Element Pets=doc.getDocumentElement();
+        NodeList nodeList=Pets.getElementsByTagName("Pet");
+        Element oldE= (Element) nodeList.item(id);
+        Element newE=doc.createElement(name);
+        newE.setTextContent(value);
+
+        oldE.appendChild(newE);
+        generateXML(doc);
+    }
 
 
 
-    public String readNodeValue(int id) throws IOException, SAXException {
-        Document doc=db.parse(filename+".xml");
+    public String readNodeValue(int id,String name) {
+        Document doc=getParsedXML();
         Element Pets=doc.getDocumentElement();
 
-        return Pets.getElementsByTagName("Pet").item(id).getTextContent();
+        NodeList nodeList=Pets.getElementsByTagName("Pet");
+        Element element= (Element) nodeList.item(id);
+        return element.getElementsByTagName(name).item(0).getTextContent();
+
+    }
+
+    private Document getParsedXML(){
+        try {
+            return db.parse(filename+".xml");
+        } catch (SAXException | IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void generateXML(Document document){
+        try{
+            tr.transform(new DOMSource(document),
+                    new StreamResult(new FileOutputStream(filename+".xml")));
+        }catch (FileNotFoundException | TransformerException e){
+            e.printStackTrace();
+        }
     }
 
 }
